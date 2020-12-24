@@ -15,6 +15,11 @@ This script can use an existing ISO image or download the latest daily image fro
 
 By default, the source ISO image is checked for integrity and authenticity using GPG. This can be disabled with ```-k```.
 
+### Requirements
+Tested on a host running Ubuntu 20.04.1.
+- Utilities required:
+    - p7zip-full
+    - mkisofs
 
 ### Usage
 ```
@@ -44,6 +49,35 @@ Available options:
                     created, overwriting any existing file.
 ```
 
+### Example
+```
+user@testbox:~$ bash ubuntu-autoinstall-generator.sh -a -u user-data.example -d ubuntu-autoinstall-example.iso
+[2020-12-23 14:06:07] 👶 Starting up...                                                                                                                                                                                                                                                                                                                                         
+[2020-12-23 14:06:07] 📁 Created temporary working directory /tmp/tmp.jrmlEaDhL3                                                                                                                                                                                                                                                                                                
+[2020-12-23 14:06:07] 🔎 Checking for required utilities...                                                                                                                                                                                                                                                                                                                     
+[2020-12-23 14:06:07] 👍 All required utilities are installed.                                                                                                                                                                                                                                                                                                                  
+[2020-12-23 14:06:07] 🌎 Downloading current daily ISO image for Ubuntu 20.04 Focal Fossa...                                                                                                                                                                                                                                                                                    
+[2020-12-23 14:08:01] 👍 Downloaded and saved to /home/user/ubuntu-original-2020-12-23.iso                                                                                                                                                                                                                                                                                      
+[2020-12-23 14:08:01] 🌎 Downloading SHA256SUMS & SHA256SUMS.gpg files...                                                                                                                                                                                                                                                                                                       
+[2020-12-23 14:08:02] 🌎 Downloading and saving Ubuntu signing key...
+[2020-12-23 14:08:02] 👍 Downloaded and saved to /home/user/843938DF228D22F7B3742BC0D94AA3F0EFE21092.keyring
+[2020-12-23 14:08:02] 🔐 Verifying /home/user/ubuntu-original-2020-12-23.iso integrity and authenticity...
+[2020-12-23 14:08:09] 👍 Verification succeeded.
+[2020-12-23 14:08:09] 🔧 Extracting ISO image...
+[2020-12-23 14:08:11] 👍 Extracted to /tmp/tmp.jrmlEaDhL3
+[2020-12-23 14:08:11] 🧩 Adding autoinstall parameter to kernel command line...
+[2020-12-23 14:08:11] 👍 Added parameter to UEFI and BIOS kernel command lines.
+[2020-12-23 14:08:11] 🧩 Adding user-data and meta-data files...
+[2020-12-23 14:08:11] 👍 Added data and configured kernel command line.
+[2020-12-23 14:08:11] 👷 Updating /tmp/tmp.jrmlEaDhL3/md5sum.txt with hashes of modified files...
+[2020-12-23 14:08:11] 👍 Updated hashes.
+[2020-12-23 14:08:11] 📦 Repackaging extracted files into an ISO image...
+[2020-12-23 14:08:14] 👍 Repackaged into /home/user/ubuntu-autoinstall-example.iso
+[2020-12-23 14:08:14] ✅ Completed.
+[2020-12-23 14:08:14] 🚽 Deleted temporary working directory /tmp/tmp.jrmlEaDhL3
+```
+
+Now you can boot your target machine using ```ubuntu-autoinstall-example.iso``` and it will automatically install Ubuntu using the configuration from ```user-data.example```.
 
 ### Thanks
 This script is based on [this](https://betterdev.blog/minimal-safe-bash-script-template/) minimal safe bash template, and steps found in [this](https://discourse.ubuntu.com/t/please-test-autoinstalls-for-20-04/15250) discussion thread (particularly [this](https://gist.github.com/s3rj1k/55b10cd20f31542046018fcce32f103e) script).
