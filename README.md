@@ -4,22 +4,22 @@ for Ubuntu 20.04 and newer.
 
 
 ### Behavior
-Check out the usage information below for arguments. The basic idea is to take an unmodified Ubuntu ISO image, extract it, add some kernel command line parameters, then repack the data into a new ISO. This is needed for a fully-automated install because the ```autoinstall``` parameter must be present on the kernel command line during unattended installation; otherwise the installer will wait for a human to confirm. This script automates the process of creating an ISO with this built-in.
+Check out the usage information below for arguments. The basic idea is to take an unmodified Ubuntu ISO image, extract it, add some kernel command line parameters, then repack the data into a new ISO. This is needed for full automation because the ```autoinstall``` parameter must be present on the kernel command line, otherwise the installer will wait for a human to confirm. This script automates the process of creating an ISO with this built-in.
 
-Autoinstall configuration (disk layout, language etc) can be passed, along with cloud-init data, to the installer. Some minimal information is needed for
-the installer to work - see the Ubuntu documentation for an example, which is also in the ```user-data``` file in this repository. This data can be passed over the network (not yet supported in this script), via an attached volume, or be baked into the ISO itself.
+Autoinstall configuration (disk layout, language etc) can be passed along with cloud-init data to the installer. Some minimal information is needed for
+the installer to work - see the Ubuntu documentation for an example, which is also in the ```user-data.example``` file in this repository (password: ubuntu). This data can be passed over the network (not yet supported in this script), via an attached volume, or be baked into the ISO itself.
 
-To attach via a volume, see the Ubuntu autoinstall quick start guide. It's really very easy! To bake everything into a single ISO instead, you can use the ```-a``` flag with this script and provide a user-data file (containing the autoinstall configuration and optionally cloud-init data too), plus a meta-data file if you choose. The meta-data file is optional and will be empty if it is not specified. With an 'all-in-one' ISO, you simply boot a machine using the ISO and the installer will do the rest. At the end, the machine will reboot into the new OS.
+To attach via a volume (such as a separate ISO image), see the Ubuntu autoinstall [quick start guide](https://ubuntu.com/server/docs/install/autoinstall-quickstart). It's really very easy! To bake everything into a single ISO instead, you can use the ```-a``` flag with this script and provide a user-data file containing the autoinstall configuration and optionally cloud-init data, plus a meta-data file if you choose. The meta-data file is optional and will be empty if it is not specified. With an 'all-in-one' ISO, you simply boot a machine using the ISO and the installer will do the rest. At the end the machine will reboot into the new OS.
 
-This script can use an existing ISO image or download the latest daily image from the Ubuntu project. Using a fresh ISO speeds up the installation because there won't be as many packages to update during the install.
+This script can use an existing ISO image or download the latest daily image from the Ubuntu project. Using a fresh ISO speeds things up because there won't be as many packages to update during the installation.
 
 By default, the source ISO image is checked for integrity and authenticity using GPG. This can be disabled with ```-k```.
 
 ### Requirements
 Tested on a host running Ubuntu 20.04.1.
 - Utilities required:
-    - p7zip-full
-    - mkisofs
+    - ```p7zip-full```
+    - ```mkisofs``` or ```genisoimage```
 
 ### Usage
 ```
