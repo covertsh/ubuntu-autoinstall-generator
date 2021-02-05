@@ -136,15 +136,20 @@ if [ ! -f "${source_iso}" ]; then
 	log "👍 Downloaded and saved to ${source_iso}"
 else
 	log "☑️ Using existing ${source_iso} file."
+	if [ ${gpg_verify} -eq 1 ]; then
+		if [ "${source_iso}" != "${script_dir}/ubuntu-original-$today.iso" ]; then
+			log "⚠️ Automatic GPG verification is enabled. If the source ISO file is not the latest daily image, verification will fail!"
+		fi
+	fi
 fi
 
 if [ ${gpg_verify} -eq 1 ]; then
-	if [ ! -f "${script_dir}/SHA256SUMS" ]; then
+	if [ ! -f "${script_dir}/SHA256SUMS-${today}" ]; then
 		log "🌎 Downloading SHA256SUMS & SHA256SUMS.gpg files..."
-		/usr/bin/curl -NsSL "https://cdimage.ubuntu.com/ubuntu-server/focal/daily-live/current/SHA256SUMS" -o "${script_dir}/SHA256SUMS"
-		/usr/bin/curl -NsSL "https://cdimage.ubuntu.com/ubuntu-server/focal/daily-live/current/SHA256SUMS.gpg" -o "${script_dir}/SHA256SUMS.gpg"
+		/usr/bin/curl -NsSL "https://cdimage.ubuntu.com/ubuntu-server/focal/daily-live/current/SHA256SUMS" -o "${script_dir}/SHA256SUMS-${today}"
+		/usr/bin/curl -NsSL "https://cdimage.ubuntu.com/ubuntu-server/focal/daily-live/current/SHA256SUMS.gpg" -o "${script_dir}/SHA256SUMS-${today}.gpg"
 	else
-		log "☑️ Using existing SHA256SUMS & SHA256SUMS.gpg files."
+		log "☑️ Using existing SHA256SUMS-${today} & SHA256SUMS-${today}.gpg files."
 	fi
 
 	if [ ! -f "${script_dir}/${ubuntu_gpg_key_id}.keyring" ]; then
@@ -156,7 +161,7 @@ if [ ${gpg_verify} -eq 1 ]; then
 	fi
 
 	log "🔐 Verifying ${source_iso} integrity and authenticity..."
-	/usr/bin/gpg -q --keyring "${script_dir}/${ubuntu_gpg_key_id}.keyring" --verify "${script_dir}/SHA256SUMS.gpg" "${script_dir}/SHA256SUMS" 2>/dev/null
+	/usr/bin/gpg -q --keyring "${script_dir}/${ubuntu_gpg_key_id}.keyring" --verify "${script_dir}/SHA256SUMS-${today}.gpg" "${script_dir}/SHA256SUMS-${today}" 2>/dev/null
 	if [ $? -ne 0 ]; then
 		rm -f "${script_dir}/${ubuntu_gpg_key_id}.keyring~"
 		die "👿 Verification of SHA256SUMS signature failed."
@@ -165,7 +170,7 @@ if [ ${gpg_verify} -eq 1 ]; then
 	rm -f "${script_dir}/${ubuntu_gpg_key_id}.keyring~"
 	digest=$(sha256sum "${source_iso}" | cut -f1 -d ' ')
 	set +e
-	/usr/bin/grep -Fq "$digest" "${script_dir}/SHA256SUMS"
+	/usr/bin/grep -Fq "$digest" "${script_dir}/SHA256SUMS-${today}"
 	if [ $? -eq 0 ]; then
 		log "👍 Verification succeeded."
 		set -e
