@@ -37,8 +37,8 @@ Available options:
                     For more information see: https://ubuntu.com/server/docs/install/autoinstall-quickstart
 -u, --user-data     Path to user-data file. Required if using -a
 -m, --meta-data     Path to meta-data file. Will be an empty file if not specified and using -a
--k, --no-verify     Disable GPG verification of the source ISO file. By default SHA256SUMS and
-                    SHA256SUMS.gpg files in the script directory will be used to verify the authenticity and integrity
+-k, --no-verify     Disable GPG verification of the source ISO file. By default SHA256SUMS-<current date> and
+                    SHA256SUMS-<current date>.gpg files in the script directory will be used to verify the authenticity and integrity
                     of the source ISO file. If they are not present the latest daily SHA256SUMS will be
                     downloaded and saved in the script directory. The Ubuntu signing key will be downloaded and
                     saved in a new keyring in the script directory.
