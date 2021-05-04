@@ -54,7 +54,6 @@ OS_VARIANT := ubuntu$(RELEASE)
 NETWORK ?= network:default
 GRAPHICS ?= vnc
 CONSOLE ?= pty,target_type=serial
-EXTRA_ARGS ?= console=ttyS0,115200n8 serial
 
 compile:
 	$(MAKE) get_pub_key
