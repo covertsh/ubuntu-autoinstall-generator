@@ -11,7 +11,7 @@ USER_DATA_FILE ?= ./user-data.yaml
 
 PROJECT := simple
 PASSWORD ?= $(shell stty -echo; read -p "Password: " pwd; stty echo; echo $$pwd)
-INSTALL_SERVER ?= false
+INSTALL_SSH_SERVER ?= false
 PUB_KEY ?= $(shell cat id_rsa.pub)
 ENCRYPTED_PASSWORD ?= $(shell /usr/bin/openssl passwd -1 $(PASSWORD))
 
