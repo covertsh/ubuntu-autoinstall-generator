@@ -10,7 +10,7 @@ USER_DATA_INFILE ?= ./user-data.template.yaml
 USER_DATA_FILE ?= ./user-data.yaml
 
 PROJECT := simple
-PASSWORD ?= $(shell stty -echo; read -p "Password: " pwd; stty echo; echo $$pwd)
+PASSWORD ?= ubuntu
 INSTALL_SSH_SERVER ?= false
 PUB_KEY ?= $(shell cat id_rsa.pub)
 ENCRYPTED_PASSWORD ?= $(shell /usr/bin/openssl passwd -1 $(PASSWORD))
