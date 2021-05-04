@@ -100,7 +100,7 @@ make_clean_all:
 install:
 	$(GCC) $(INSTALLER) \
 	    --connect=$(URI) \
-        --name $(VM_NAME) \
+	    --name $(VM_NAME) \
 	    --ram $(RAM) \
 	    --disk $(DISK) \
 	    --vcpus $(VCPUS) \
