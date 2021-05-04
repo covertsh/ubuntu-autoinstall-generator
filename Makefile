@@ -112,3 +112,6 @@ install:
 	    --cdrom $(CDROM) \
 	    --force --debug
 
+all:
+	$(MAKE) compile
+	$(MAKE) install
