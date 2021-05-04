@@ -54,6 +54,7 @@ OS_VARIANT := ubuntu$(RELEASE)
 NETWORK ?= network:default
 GRAPHICS ?= vnc
 CONSOLE ?= pty,target_type=serial
+VM_NAME ?= $(HOSTNAME)
 
 compile:
 	$(MAKE) get_pub_key
@@ -99,7 +100,7 @@ make_clean_all:
 install:
 	$(GCC) $(INSTALLER) \
 	    --connect=$(URI) \
-            --name $(HOSTNAME) \
+        --name $(VM_NAME) \
 	    --ram $(RAM) \
 	    --disk $(DISK) \
 	    --vcpus $(VCPUS) \
