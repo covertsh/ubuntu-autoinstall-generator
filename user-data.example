@@ -3,5 +3,9 @@ autoinstall:
   version: 1
   identity:
     hostname: ubuntu-server
-    password: "$6$exDY1mhS4KUYCE/2$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0"
+    password: "$6$exDY1mhS4KUYCE/2$zmn9ToZwTKLhCw.b4/b.ZRTIZM30JZ4QrOQ2aOXJ8yk96xpcCof0kxKwuX1kqLG/ygbJ1f8wxED22bTL4F46P0" # ubuntu
     username: ubuntu
+  ssh:
+    install-server: true
+    authorized-keys:
+      - ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABgQDLUB0B9Pog/XwBgT3WPN8Xmmxv0V9dUJvSJ5njL5uBGy9/fcLKueSeGkVvFCD1sSa7JVCcsYU0pHbNzjmE209U9ZKyz78PsK/6ibGonHXLqs3G/Fl1v6yqHsIprtUdW78dJSZf34kEpD3sxYwayvViy89dofMhLfgrYrf+KNzdiQlshVWrTbNg4iPsF6MVGS5H3zoxx66oAX0wXw1N9jT8DmyK+DOioi6EVvdE5kt80yPqWq4iycymJpHOkqML3yfDtAzVBni4q47vxhYKGODxa4Mn80zuolzRKghNHdzdgOpnBIs32wQQScMyLJ6z24VWcXjBm6lP7LHmkUBuUQlRLGQSW1KihrjGbpmS/xB54nF2tOAiuzxySGFrNdcOdo9tIuEnXz3HtgrIIIq6pyAc0zct/edHZVoJlgVxp/14XV/kaBzIMPE8+iYHObMTvki+8u2+7ty39au/R0K+RghdTq+/HmpRYQh/2tzJ+X6NEdnbmv4twYATHHNApt8e0uc=
