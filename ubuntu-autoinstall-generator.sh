@@ -33,24 +33,26 @@ Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-u user-data-file] [-m me
 
 Available options:
 
--h, --help          Print this help and exit
--v, --verbose       Print script debug info
--a, --all-in-one    Bake user-data and meta-data into the generated ISO. By default you will
-                    need to boot systems with a CIDATA volume attached containing your
-                    autoinstall user-data and meta-data files.
-                    For more information see: https://ubuntu.com/server/docs/install/autoinstall-quickstart
--u, --user-data     Path to user-data file. Required if using -a
--m, --meta-data     Path to meta-data file. Will be an empty file if not specified and using -a
--k, --no-verify     Disable GPG verification of the source ISO file. By default SHA256SUMS-$today and
-                    SHA256SUMS-$today.gpg in ${script_dir} will be used to verify the authenticity and integrity
-                    of the source ISO file. If they are not present the latest daily SHA256SUMS will be
-                    downloaded and saved in ${script_dir}. The Ubuntu signing key will be downloaded and
-                    saved in a new keyring in ${script_dir}
--s, --source        Source ISO file. By default the latest daily ISO for Ubuntu 20.04 will be downloaded
-                    and saved as ${script_dir}/ubuntu-original-$today.iso
-                    That file will be used by default if it already exists.
--d, --destination   Destination ISO file. By default ${script_dir}/ubuntu-autoinstall-$today.iso will be
-                    created, overwriting any existing file.
+-h, --help              Print this help and exit
+-v, --verbose           Print script debug info
+-a, --all-in-one        Bake user-data and meta-data into the generated ISO. By default you will
+                        need to boot systems with a CIDATA volume attached containing your
+                        autoinstall user-data and meta-data files.
+                        For more information see: https://ubuntu.com/server/docs/install/autoinstall-quickstart
+-e, --use-hwe-kernel    Force the generated ISO to boot using the hardware enablement (HWE) kernel. Not supported
+                        by early Ubuntu 20.04 release ISOs.
+-u, --user-data         Path to user-data file. Required if using -a
+-m, --meta-data         Path to meta-data file. Will be an empty file if not specified and using -a
+-k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-$today and
+                        SHA256SUMS-$today.gpg in ${script_dir} will be used to verify the authenticity and integrity
+                        of the source ISO file. If they are not present the latest daily SHA256SUMS will be
+                        downloaded and saved in ${script_dir}. The Ubuntu signing key will be downloaded and
+                        saved in a new keyring in ${script_dir}
+-s, --source            Source ISO file. By default the latest daily ISO for Ubuntu 20.04 will be downloaded
+                        and saved as ${script_dir}/ubuntu-original-$today.iso
+                        That file will be used by default if it already exists.
+-d, --destination       Destination ISO file. By default ${script_dir}/ubuntu-autoinstall-$today.iso will be
+                        created, overwriting any existing file.
 EOF
         exit
 }
@@ -63,12 +65,14 @@ function parse_params() {
         destination_iso="${script_dir}/ubuntu-autoinstall-$today.iso"
         gpg_verify=1
         all_in_one=0
+        use_hwe_kernel=0
 
         while :; do
                 case "${1-}" in
                 -h | --help) usage ;;
                 -v | --verbose) set -x ;;
                 -a | --all-in-one) all_in_one=1 ;;
+                -e | --use-hwe-kernel) use_hwe_kernel=1 ;;
                 -k | --no-verify) gpg_verify=0 ;;
                 -u | --user-data)
                         user_data_file="${2-}"
@@ -124,11 +128,11 @@ else
 fi
 
 log "🔎 Checking for required utilities..."
-[[ ! -x "$(command -v 7z)" ]] && die "💥 7z is not installed."
-[[ ! -x "$(command -v sed)" ]] && die "💥 sed is not installed."
-[[ ! -x "$(command -v curl)" ]] && die "💥 curl is not installed."
-[[ ! -x "$(command -v mkisofs)" ]] && die "💥 mkisofs is not installed."
-[[ ! -x "$(command -v gpg)" ]] && die "💥 gpg is not installed."
+[[ ! -x "$(command -v 7z)" ]] && die "💥 7z is not installed. On Ubuntu, install  the 'p7zip-full' package."
+[[ ! -x "$(command -v sed)" ]] && die "💥 sed is not installed. On Ubuntu, install the 'sed' package."
+[[ ! -x "$(command -v curl)" ]] && die "💥 curl is not installed. On Ubuntu, install the 'curl' package."
+[[ ! -x "$(command -v mkisofs)" ]] && die "💥 mkisofs is not installed. On Ubuntu, install the 'genisoimage' package."
+[[ ! -x "$(command -v gpg)" ]] && die "💥 gpg is not installed. On Ubuntu, install the 'gpg' package."
 log "👍 All required utilities are installed."
 
 if [ ! -f "${source_iso}" ]; then
@@ -185,6 +189,20 @@ log "🔧 Extracting ISO image..."
 7z -y x "${source_iso}" -o"$tmpdir" >/dev/null
 rm -rf "$tmpdir/"'[BOOT]'
 log "👍 Extracted to $tmpdir"
+
+if [ ${use_hwe_kernel} -eq 1 ]; then
+        if grep -q "hwe-vmlinuz" "$tmpdir/boot/grub/grub.cfg"; then
+                log "☑️ Destination ISO will use HWE kernel."
+                sed -i -e 's|/casper/vmlinuz|/casper/hwe-vmlinuz|g' "$tmpdir/isolinux/txt.cfg"
+                sed -i -e 's|/casper/initrd|/casper/hwe-initrd|g' "$tmpdir/isolinux/txt.cfg"
+                sed -i -e 's|/casper/vmlinuz|/casper/hwe-vmlinuz|g' "$tmpdir/boot/grub/grub.cfg"
+                sed -i -e 's|/casper/initrd|/casper/hwe-initrd|g' "$tmpdir/boot/grub/grub.cfg"
+                sed -i -e 's|/casper/vmlinuz|/casper/hwe-vmlinuz|g' "$tmpdir/boot/grub/loopback.cfg"
+                sed -i -e 's|/casper/initrd|/casper/hwe-initrd|g' "$tmpdir/boot/grub/loopback.cfg"
+        else
+                log "⚠️ This source ISO does not support the HWE kernel. Proceeding with the regular kernel."
+        fi
+fi
 
 log "🧩 Adding autoinstall parameter to kernel command line..."
 sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/isolinux/txt.cfg"
