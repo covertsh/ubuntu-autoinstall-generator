@@ -27,7 +27,7 @@ function die() {
 
 usage() {
         cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-u user-data-file] [-m meta-data-file]
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-k] [-c] [-s source-iso-file] [-d destination-iso-file]
 
 💁 This script will create fully-automated Ubuntu 20.04 Focal Fossa installation media.
 
@@ -48,6 +48,7 @@ Available options:
                         of the source ISO file. If they are not present the latest daily SHA256SUMS will be
                         downloaded and saved in ${script_dir}. The Ubuntu signing key will be downloaded and
                         saved in a new keyring in ${script_dir}
+-c, --no-md5            Disable MD5 checksum on boot
 -s, --source            Source ISO file. By default the latest daily ISO for Ubuntu 20.04 will be downloaded
                         and saved as ${script_dir}/ubuntu-original-$today.iso
                         That file will be used by default if it already exists.
@@ -66,6 +67,7 @@ function parse_params() {
         gpg_verify=1
         all_in_one=0
         use_hwe_kernel=0
+        md5_checksum=1
 
         while :; do
                 case "${1-}" in
@@ -73,6 +75,7 @@ function parse_params() {
                 -v | --verbose) set -x ;;
                 -a | --all-in-one) all_in_one=1 ;;
                 -e | --use-hwe-kernel) use_hwe_kernel=1 ;;
+                -c | --no-md5) md5_checksum=0 ;;
                 -k | --no-verify) gpg_verify=0 ;;
                 -u | --user-data)
                         user_data_file="${2-}"
@@ -225,12 +228,18 @@ if [ ${all_in_one} -eq 1 ]; then
         log "👍 Added data and configured kernel command line."
 fi
 
-log "👷 Updating $tmpdir/md5sum.txt with hashes of modified files..."
-md5=$(md5sum "$tmpdir/boot/grub/grub.cfg" | cut -f1 -d ' ')
-sed -i -e 's,^.*[[:space:]] ./boot/grub/grub.cfg,'"$md5"'  ./boot/grub/grub.cfg,' "$tmpdir/md5sum.txt"
-md5=$(md5sum "$tmpdir/boot/grub/loopback.cfg" | cut -f1 -d ' ')
-sed -i -e 's,^.*[[:space:]] ./boot/grub/loopback.cfg,'"$md5"'  ./boot/grub/loopback.cfg,' "$tmpdir/md5sum.txt"
-log "👍 Updated hashes."
+if [ ${md5_checksum} -eq 1 ]; then
+        log "👷 Updating $tmpdir/md5sum.txt with hashes of modified files..."
+        md5=$(md5sum "$tmpdir/boot/grub/grub.cfg" | cut -f1 -d ' ')
+        sed -i -e 's,^.*[[:space:]] ./boot/grub/grub.cfg,'"$md5"'  ./boot/grub/grub.cfg,' "$tmpdir/md5sum.txt"
+        md5=$(md5sum "$tmpdir/boot/grub/loopback.cfg" | cut -f1 -d ' ')
+        sed -i -e 's,^.*[[:space:]] ./boot/grub/loopback.cfg,'"$md5"'  ./boot/grub/loopback.cfg,' "$tmpdir/md5sum.txt"
+        log "👍 Updated hashes."
+else
+        log "🗑️ Clearing MD5 hashes..."
+        echo > "$tmpdir/md5sum.txt"
+        log "👍 Cleared hashes."
+fi
 
 log "📦 Repackaging extracted files into an ISO image..."
 cd "$tmpdir"
