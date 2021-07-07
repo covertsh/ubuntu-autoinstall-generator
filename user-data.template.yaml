@@ -1,0 +1,11 @@
+#cloud-config
+autoinstall:
+  version: 1
+  identity:
+    hostname: ${HOSTNAME}
+    password: "${ENCRYPTED_PASSWORD}"
+    username: ${USERNAME}
+  ssh:
+    install-server: ${INSTALL_SSH_SERVER}
+    authorized-keys:
+      - ${PUB_KEY}
