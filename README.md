@@ -31,24 +31,26 @@ Usage: ubuntu-autoinstall-generator.sh [-h] [-v] [-a] [-u user-data-file] [-m me
 
 Available options:
 
--h, --help          Print this help and exit
--v, --verbose       Print script debug info
--a, --all-in-one    Bake user-data and meta-data into the generated ISO. By default you will
-                    need to boot systems with a CIDATA volume attached containing your
-                    autoinstall user-data and meta-data files.
-                    For more information see: https://ubuntu.com/server/docs/install/autoinstall-quickstart
--u, --user-data     Path to user-data file. Required if using -a
--m, --meta-data     Path to meta-data file. Will be an empty file if not specified and using -a
--k, --no-verify     Disable GPG verification of the source ISO file. By default SHA256SUMS-<current date> and
-                    SHA256SUMS-<current date>.gpg files in the script directory will be used to verify the authenticity and integrity
-                    of the source ISO file. If they are not present the latest daily SHA256SUMS will be
-                    downloaded and saved in the script directory. The Ubuntu signing key will be downloaded and
-                    saved in a new keyring in the script directory.
--s, --source        Source ISO file. By default the latest daily ISO for Ubuntu 20.04 will be downloaded
-                    and saved as <script directory>/ubuntu-original-<current date>.iso
-                    That file will be used by default if it already exists.
--d, --destination   Destination ISO file. By default <script directory>/ubuntu-autoinstall-<current date>.iso will be
-                    created, overwriting any existing file.
+-h, --help              Print this help and exit
+-v, --verbose           Print script debug info
+-a, --all-in-one        Bake user-data and meta-data into the generated ISO. By default you will
+                        need to boot systems with a CIDATA volume attached containing your
+                        autoinstall user-data and meta-data files.
+                        For more information see: https://ubuntu.com/server/docs/install/autoinstall-quickstart
+-e, --use-hwe-kernel    Force the generated ISO to boot using the hardware enablement (HWE) kernel. Not supported
+                        by early Ubuntu 20.04 release ISOs.
+-u, --user-data         Path to user-data file. Required if using -a
+-m, --meta-data         Path to meta-data file. Will be an empty file if not specified and using -a
+-k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-<current date> and
+                        SHA256SUMS-<current date>.gpg files in the script directory will be used to verify the authenticity and integrity
+                        of the source ISO file. If they are not present the latest daily SHA256SUMS will be
+                        downloaded and saved in the script directory. The Ubuntu signing key will be downloaded and
+                        saved in a new keyring in the script directory.
+-s, --source            Source ISO file. By default the latest daily ISO for Ubuntu 20.04 will be downloaded
+                        and saved as <script directory>/ubuntu-original-<current date>.iso
+                        That file will be used by default if it already exists.
+-d, --destination       Destination ISO file. By default <script directory>/ubuntu-autoinstall-<current date>.iso will be
+                        created, overwriting any existing file.
 ```
 
 ### Example
