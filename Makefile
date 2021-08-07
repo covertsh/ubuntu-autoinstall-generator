@@ -98,7 +98,7 @@ make_clean_all:
 	$(MAKE) cleanup_isos
 
 install:
-	$(GCC) $(INSTALLER) \
+	$(INSTALLER) \
 	    --connect=$(URI) \
 	    --name $(VM_NAME) \
 	    --ram $(RAM) \
