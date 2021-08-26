@@ -20,7 +20,7 @@ By default, the source ISO image is checked for integrity and authenticity using
 Tested on a host running Ubuntu 20.04.1.
 - Utilities required:
     - ```p7zip-full```
-    - ```mkisofs``` or ```genisoimage```
+    - ```xorriso```
 
 ### Usage
 ```
