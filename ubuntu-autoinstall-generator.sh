@@ -52,6 +52,8 @@ Available options:
 -s, --source            Source ISO file. By default the latest daily ISO for Ubuntu 20.04 will be downloaded
                         and saved as ${script_dir}/ubuntu-original-$today.iso
                         That file will be used by default if it already exists.
+-r, --use_release_iso   Use the current release ISO instead of the daily ISO.  The file will be used if it already
+                        exists.
 -d, --destination       Destination ISO file. By default ${script_dir}/ubuntu-autoinstall-$today.iso will be
                         created, overwriting any existing file.
 EOF
@@ -62,12 +64,17 @@ function parse_params() {
         # default values of variables set from params
         user_data_file=''
         meta_data_file=''
-        source_iso="${script_dir}/ubuntu-original-$today.iso"
+        download_url="https://cdimage.ubuntu.com/ubuntu-server/focal/daily-live/current"
+        download_iso="focal-live-server-amd64.iso"
+        original_iso="ubuntu-original-$today.iso"
+        source_iso="${script_dir}/${original_iso}"
         destination_iso="${script_dir}/ubuntu-autoinstall-$today.iso"
+        sha_suffix="${today}"
         gpg_verify=1
         all_in_one=0
         use_hwe_kernel=0
         md5_checksum=1
+        use_release_iso=0
 
         while :; do
                 case "${1-}" in
@@ -77,6 +84,7 @@ function parse_params() {
                 -e | --use-hwe-kernel) use_hwe_kernel=1 ;;
                 -c | --no-md5) md5_checksum=0 ;;
                 -k | --no-verify) gpg_verify=0 ;;
+                -r | --use-release-iso) use_release_iso=1 ;;
                 -u | --user-data)
                         user_data_file="${2-}"
                         shift
@@ -108,8 +116,19 @@ function parse_params() {
                 [[ -n "${meta_data_file}" ]] && [[ ! -f "$meta_data_file" ]] && die "💥 meta-data file could not be found."
         fi
 
-        if [ "${source_iso}" != "${script_dir}/ubuntu-original-$today.iso" ]; then
+        if [ "${source_iso}" != "${script_dir}/${original_iso}" ]; then
                 [[ ! -f "${source_iso}" ]] && die "💥 Source ISO file could not be found."
+        fi
+
+        if [ "${use_release_iso}" -eq 1 ]; then
+                download_url="https://releases.ubuntu.com/focal"
+                log "🔎 Checking for current release..."
+                download_iso=$(curl -sSL "${download_url}" | grep -oP 'ubuntu-20\.04\.\d*-live-server-amd64\.iso' | head -n 1)
+                original_iso="${download_iso}"
+                source_iso="${script_dir}/${download_iso}"
+                current_release=$(echo "${download_iso}" | cut -f2 -d-)
+                sha_suffix="${current_release}"
+                log "💿 Current release is ${current_release}"
         fi
 
         destination_iso=$(realpath "${destination_iso}")
@@ -139,25 +158,25 @@ log "🔎 Checking for required utilities..."
 log "👍 All required utilities are installed."
 
 if [ ! -f "${source_iso}" ]; then
-        log "🌎 Downloading current daily ISO image for Ubuntu 20.04 Focal Fossa..."
-        curl -NsSL "https://cdimage.ubuntu.com/ubuntu-server/focal/daily-live/current/focal-live-server-amd64.iso" -o "${source_iso}"
+        log "🌎 Downloading ISO image for Ubuntu 20.04 Focal Fossa..."
+        curl -NsSL "${download_url}/${download_iso}" -o "${source_iso}"
         log "👍 Downloaded and saved to ${source_iso}"
 else
         log "☑️ Using existing ${source_iso} file."
         if [ ${gpg_verify} -eq 1 ]; then
-                if [ "${source_iso}" != "${script_dir}/ubuntu-original-$today.iso" ]; then
-                        log "⚠️ Automatic GPG verification is enabled. If the source ISO file is not the latest daily image, verification will fail!"
+                if [ "${source_iso}" != "${script_dir}/${original_iso}" ]; then
+                        log "⚠️ Automatic GPG verification is enabled. If the source ISO file is not the latest daily or release image, verification will fail!"
                 fi
         fi
 fi
 
 if [ ${gpg_verify} -eq 1 ]; then
-        if [ ! -f "${script_dir}/SHA256SUMS-${today}" ]; then
+        if [ ! -f "${script_dir}/SHA256SUMS-${sha_suffix}" ]; then
                 log "🌎 Downloading SHA256SUMS & SHA256SUMS.gpg files..."
-                curl -NsSL "https://cdimage.ubuntu.com/ubuntu-server/focal/daily-live/current/SHA256SUMS" -o "${script_dir}/SHA256SUMS-${today}"
-                curl -NsSL "https://cdimage.ubuntu.com/ubuntu-server/focal/daily-live/current/SHA256SUMS.gpg" -o "${script_dir}/SHA256SUMS-${today}.gpg"
+                curl -NsSL "${download_url}/SHA256SUMS" -o "${script_dir}/SHA256SUMS-${sha_suffix}"
+                curl -NsSL "${download_url}/SHA256SUMS.gpg" -o "${script_dir}/SHA256SUMS-${sha_suffix}.gpg"
         else
-                log "☑️ Using existing SHA256SUMS-${today} & SHA256SUMS-${today}.gpg files."
+                log "☑️ Using existing SHA256SUMS-${sha_suffix} & SHA256SUMS-${sha_suffix}.gpg files."
         fi
 
         if [ ! -f "${script_dir}/${ubuntu_gpg_key_id}.keyring" ]; then
@@ -169,7 +188,7 @@ if [ ${gpg_verify} -eq 1 ]; then
         fi
 
         log "🔐 Verifying ${source_iso} integrity and authenticity..."
-        gpg -q --keyring "${script_dir}/${ubuntu_gpg_key_id}.keyring" --verify "${script_dir}/SHA256SUMS-${today}.gpg" "${script_dir}/SHA256SUMS-${today}" 2>/dev/null
+        gpg -q --keyring "${script_dir}/${ubuntu_gpg_key_id}.keyring" --verify "${script_dir}/SHA256SUMS-${sha_suffix}.gpg" "${script_dir}/SHA256SUMS-${sha_suffix}" 2>/dev/null
         if [ $? -ne 0 ]; then
                 rm -f "${script_dir}/${ubuntu_gpg_key_id}.keyring~"
                 die "👿 Verification of SHA256SUMS signature failed."
@@ -178,7 +197,7 @@ if [ ${gpg_verify} -eq 1 ]; then
         rm -f "${script_dir}/${ubuntu_gpg_key_id}.keyring~"
         digest=$(sha256sum "${source_iso}" | cut -f1 -d ' ')
         set +e
-        grep -Fq "$digest" "${script_dir}/SHA256SUMS-${today}"
+        grep -Fq "$digest" "${script_dir}/SHA256SUMS-${sha_suffix}"
         if [ $? -eq 0 ]; then
                 log "👍 Verification succeeded."
                 set -e
