@@ -153,7 +153,7 @@ log "🔎 Checking for required utilities..."
 [[ ! -x "$(command -v 7z)" ]] && die "💥 7z is not installed. On Ubuntu, install  the 'p7zip-full' package."
 [[ ! -x "$(command -v sed)" ]] && die "💥 sed is not installed. On Ubuntu, install the 'sed' package."
 [[ ! -x "$(command -v curl)" ]] && die "💥 curl is not installed. On Ubuntu, install the 'curl' package."
-[[ ! -x "$(command -v mkisofs)" ]] && die "💥 mkisofs is not installed. On Ubuntu, install the 'genisoimage' package."
+[[ ! -x "$(command -v xorriso)" ]] && die "💥 xorriso is not installed. On Ubuntu, install the 'xorriso' package."
 [[ ! -x "$(command -v gpg)" ]] && die "💥 gpg is not installed. On Ubuntu, install the 'gpg' package."
 log "👍 All required utilities are installed."
 
@@ -262,7 +262,7 @@ fi
 
 log "📦 Repackaging extracted files into an ISO image..."
 cd "$tmpdir"
-mkisofs -quiet -D -r -V "ubuntu-autoinstall-$today" -cache-inodes -J -l -joliet-long -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -o "${destination_iso}" .
+xorrisofs -quiet -D -r -V "ubuntu-autoinstall-$today" -cache-inodes -J -l -joliet-long -isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin -c isolinux/boot.cat -b isolinux/isolinux.bin -no-emul-boot -boot-load-size 4 -boot-info-table -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -isohybrid-gpt-basdat -o "${destination_iso}" .
 cd "$OLDPWD"
 log "👍 Repackaged into ${destination_iso}"
 
