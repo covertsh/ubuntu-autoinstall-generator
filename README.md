@@ -24,7 +24,7 @@ Tested on a host running Ubuntu 20.04.1.
 
 ### Usage
 ```
-Usage: ubuntu-autoinstall-generator.sh [-h] [-v] [-a] [-u user-data-file] [-m meta-data-file]
+Usage: ubuntu-autoinstall-generator.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
 
 💁 This script will create fully-automated Ubuntu 20.04 Focal Fossa installation media.
 
@@ -45,6 +45,8 @@ Available options:
                         of the source ISO file. If they are not present the latest daily SHA256SUMS will be
                         downloaded and saved in the script directory. The Ubuntu signing key will be downloaded and
                         saved in a new keyring in the script directory.
+-r, --use-release-iso   Use the current release ISO instead of the daily ISO. The file will be used if it already
+                        exists.
 -s, --source            Source ISO file. By default the latest daily ISO for Ubuntu 20.04 will be downloaded
                         and saved as <script directory>/ubuntu-original-<current date>.iso
                         That file will be used by default if it already exists.
