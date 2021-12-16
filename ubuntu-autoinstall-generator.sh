@@ -150,7 +150,7 @@ else
 fi
 
 log "🔎 Checking for required utilities..."
-[[ ! -x "$(command -v 7z)" ]] && die "💥 7z is not installed. On Ubuntu, install  the 'p7zip-full' package."
+[[ ! -x "$(command -v xorriso)" ]] && die "💥 xorriso is not installed. On Ubuntu, install  the 'xorriso' package."
 [[ ! -x "$(command -v sed)" ]] && die "💥 sed is not installed. On Ubuntu, install the 'sed' package."
 [[ ! -x "$(command -v curl)" ]] && die "💥 curl is not installed. On Ubuntu, install the 'curl' package."
 [[ ! -x "$(command -v mkisofs)" ]] && die "💥 mkisofs is not installed. On Ubuntu, install the 'genisoimage' package."
@@ -208,7 +208,8 @@ else
         log "🤞 Skipping verification of source ISO."
 fi
 log "🔧 Extracting ISO image..."
-7z -y x "${source_iso}" -o"$tmpdir" >/dev/null
+xorriso -osirrox on -indev "${source_iso}" -extract / "$tmpdir" &>/dev/null
+chmod -R u+w "$tmpdir"
 rm -rf "$tmpdir/"'[BOOT]'
 log "👍 Extracted to $tmpdir"
 
