@@ -23,6 +23,7 @@ Tested on a host running Ubuntu 20.04.1.
     - ```sed```
     - ```curl```
     - ```gpg```
+    - ```isolinux```
 
 ### Usage
 ```
