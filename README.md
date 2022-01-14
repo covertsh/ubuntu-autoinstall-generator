@@ -24,7 +24,7 @@ Tested on a host running Ubuntu 20.04.1.
 
 ### Usage
 ```
-Usage: ubuntu-autoinstall-generator.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-b url] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
+Usage: ubuntu-autoinstall-generator.sh [-h] [-v] [-a] [-e] [-u user-data-file | base-url] [-m meta-data-file] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
 
 💁 This script will create fully-automated Ubuntu 20.04 Focal Fossa installation media.
 
@@ -32,27 +32,27 @@ Available options:
 
 -h, --help              Print this help and exit
 -v, --verbose           Print script debug info
--a, --all-in-one        Bake user-data and meta-data, or a data source URL into the generated ISO. By default you 
+-a, --all-in-one        Bake user-data and meta-data, or a data source URL into the generated ISO. By default you
                         will need to boot systems with a CIDATA volume attached containing your
                         autoinstall user-data and meta-data files.
                         For more information see: https://ubuntu.com/server/docs/install/autoinstall-quickstart
 -e, --use-hwe-kernel    Force the generated ISO to boot using the hardware enablement (HWE) kernel. Not supported
                         by early Ubuntu 20.04 release ISOs.
 -u, --user-data         Path to user-data file. Required if using -a
+                        May also provide a data source base URL where user-data and meta-data can be read.
 -m, --meta-data         Path to meta-data file. Will be an empty file if not specified and using -a
--b, --ds-base-url	Data source base URL where user-data and meta-data can be read (alternative to -u and -m)
--k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-2021-12-06 and
-                        SHA256SUMS-2021-12-06.gpg in /home/atch/work/ubuntu-autoinstall-generator will be used to verify the authenticity and integrity
+-k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-<current-date> and
+                        SHA256SUMS-<current_date>.gpg in <sript_directory> will be used to verify the authenticity and integrity
                         of the source ISO file. If they are not present the latest daily SHA256SUMS will be
-                        downloaded and saved in /home/atch/work/ubuntu-autoinstall-generator. The Ubuntu signing key will be downloaded and
-                        saved in a new keyring in /home/atch/work/ubuntu-autoinstall-generator
+                        downloaded and saved in <sript_directory>. The Ubuntu signing key will be downloaded and
+                        saved in a new keyring in <sript_directory>
 -c, --no-md5            Disable MD5 checksum on boot
 -r, --use-release-iso   Use the current release ISO instead of the daily ISO. The file will be used if it already
                         exists.
 -s, --source            Source ISO file. By default the latest daily ISO for Ubuntu 20.04 will be downloaded
-                        and saved as /home/atch/work/ubuntu-autoinstall-generator/ubuntu-original-2021-12-06.iso
+                        and saved as <script_directory>/ubuntu-original-<current_date>.iso
                         That file will be used by default if it already exists.
--d, --destination       Destination ISO file. By default /home/atch/work/ubuntu-autoinstall-generator/ubuntu-autoinstall-2021-12-06.iso will be
+-d, --destination       Destination ISO file. By default <script_directory>/ubuntu-autoinstall-<current_date>.iso will be
                         created, overwriting any existing file.
 ```
 

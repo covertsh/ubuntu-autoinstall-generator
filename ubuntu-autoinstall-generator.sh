@@ -27,7 +27,7 @@ function die() {
 
 usage() {
         cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-b url] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file | base-url] [-m meta-data-file] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
 
 💁 This script will create fully-automated Ubuntu 20.04 Focal Fossa installation media.
 
@@ -42,8 +42,8 @@ Available options:
 -e, --use-hwe-kernel    Force the generated ISO to boot using the hardware enablement (HWE) kernel. Not supported
                         by early Ubuntu 20.04 release ISOs.
 -u, --user-data         Path to user-data file. Required if using -a
+                        May also provide a data source base URL where user-data and meta-data can be read.
 -m, --meta-data         Path to meta-data file. Will be an empty file if not specified and using -a
--b, --ds-base-url	Data source base URL where user-data and meta-data can be read (alternative to -u and -m)
 -k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-$today and
                         SHA256SUMS-$today.gpg in ${script_dir} will be used to verify the authenticity and integrity
                         of the source ISO file. If they are not present the latest daily SHA256SUMS will be
@@ -103,10 +103,6 @@ function parse_params() {
                         meta_data_file="${2-}"
                         shift
                         ;;
-                -b | --ds-base-url)
-                        ds_base_url="${2-}"
-                        shift
-                        ;;
                 -?*) die "Unknown option: $1" ;;
                 *) break ;;
                 esac
@@ -118,7 +114,8 @@ function parse_params() {
         # check required params and arguments
         if [ ${all_in_one} -ne 0 ]; then
 		log "💿 All-in-one ISO requested."
-		if [ -n "${ds_base_url}" ]; then
+		if [[ "${user_data_file}" =~ ^https*:// ]]; then
+			ds_base_url="${user_data_file}"
 			log "🌎 Data source base URL: ${ds_base_url}"
 		else
 			[[ -z "${user_data_file}" ]] && die "💥 user-data file was not specified."
