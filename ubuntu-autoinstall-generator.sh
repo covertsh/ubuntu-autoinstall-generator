@@ -27,7 +27,7 @@ function die() {
 
 usage() {
         cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file | base-url] [-m meta-data-file] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
 
 💁 This script will create fully-automated Ubuntu 20.04 Focal Fossa installation media.
 
@@ -35,13 +35,14 @@ Available options:
 
 -h, --help              Print this help and exit
 -v, --verbose           Print script debug info
--a, --all-in-one        Bake user-data and meta-data into the generated ISO. By default you will
-                        need to boot systems with a CIDATA volume attached containing your
+-a, --all-in-one        Bake user-data and meta-data, or a data source URL into the generated ISO. By default you
+                        will need to boot systems with a CIDATA volume attached containing your
                         autoinstall user-data and meta-data files.
                         For more information see: https://ubuntu.com/server/docs/install/autoinstall-quickstart
 -e, --use-hwe-kernel    Force the generated ISO to boot using the hardware enablement (HWE) kernel. Not supported
                         by early Ubuntu 20.04 release ISOs.
 -u, --user-data         Path to user-data file. Required if using -a
+                        May also provide a data source base URL where user-data and meta-data can be read.
 -m, --meta-data         Path to meta-data file. Will be an empty file if not specified and using -a
 -k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-$today and
                         SHA256SUMS-$today.gpg in ${script_dir} will be used to verify the authenticity and integrity
@@ -64,6 +65,7 @@ function parse_params() {
         # default values of variables set from params
         user_data_file=''
         meta_data_file=''
+	ds_base_url=''
         download_url="https://cdimage.ubuntu.com/ubuntu-server/focal/daily-live/current"
         download_iso="focal-live-server-amd64.iso"
         original_iso="ubuntu-original-$today.iso"
@@ -111,9 +113,15 @@ function parse_params() {
 
         # check required params and arguments
         if [ ${all_in_one} -ne 0 ]; then
-                [[ -z "${user_data_file}" ]] && die "💥 user-data file was not specified."
-                [[ ! -f "$user_data_file" ]] && die "💥 user-data file could not be found."
-                [[ -n "${meta_data_file}" ]] && [[ ! -f "$meta_data_file" ]] && die "💥 meta-data file could not be found."
+		log "💿 All-in-one ISO requested."
+		if [[ "${user_data_file}" =~ ^https*:// ]]; then
+			ds_base_url="${user_data_file}"
+			log "🌎 Data source base URL: ${ds_base_url}"
+		else
+			[[ -z "${user_data_file}" ]] && die "💥 user-data file was not specified."
+			[[ ! -f "$user_data_file" ]] && die "💥 user-data file could not be found."
+			[[ -n "${meta_data_file}" ]] && [[ ! -f "$meta_data_file" ]] && die "💥 meta-data file could not be found."
+		fi
         fi
 
         if [ "${source_iso}" != "${script_dir}/${original_iso}" ]; then
@@ -234,18 +242,25 @@ sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/boot/grub/loopback.cfg"
 log "👍 Added parameter to UEFI and BIOS kernel command lines."
 
 if [ ${all_in_one} -eq 1 ]; then
-        log "🧩 Adding user-data and meta-data files..."
-        mkdir "$tmpdir/nocloud"
-        cp "$user_data_file" "$tmpdir/nocloud/user-data"
-        if [ -n "${meta_data_file}" ]; then
-                cp "$meta_data_file" "$tmpdir/nocloud/meta-data"
-        else
-                touch "$tmpdir/nocloud/meta-data"
-        fi
-        sed -i -e 's,---, ds=nocloud;s=/cdrom/nocloud/  ---,g' "$tmpdir/isolinux/txt.cfg"
-        sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/nocloud/  ---,g' "$tmpdir/boot/grub/grub.cfg"
-        sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/nocloud/  ---,g' "$tmpdir/boot/grub/loopback.cfg"
-        log "👍 Added data and configured kernel command line."
+	if [ -n "${ds_base_url}" ]; then
+		log "🧩 Adding data source base URL to boot loader..."
+		sed -i -e "s,---, ip=dhcp ds=nocloud-net;s=${ds_base_url}  ---,g" "$tmpdir/isolinux/txt.cfg"
+		sed -i -e "s,---, ip=dhcp ds=nocloud-net\\\;s=${ds_base_url}  ---,g" "$tmpdir/boot/grub/grub.cfg"
+		sed -i -e "s,---, ip=dhcp ds=nocloud-net\\\;s=${ds_base_url}  ---,g" "$tmpdir/boot/grub/loopback.cfg"
+	else
+		log "🧩 Adding user-data and meta-data files..."
+		mkdir "$tmpdir/nocloud"
+		cp "$user_data_file" "$tmpdir/nocloud/user-data"
+		if [ -n "${meta_data_file}" ]; then
+			cp "$meta_data_file" "$tmpdir/nocloud/meta-data"
+		else
+			touch "$tmpdir/nocloud/meta-data"
+		fi
+		sed -i -e 's,---, ds=nocloud;s=/cdrom/nocloud/  ---,g' "$tmpdir/isolinux/txt.cfg"
+		sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/nocloud/  ---,g' "$tmpdir/boot/grub/grub.cfg"
+		sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/nocloud/  ---,g' "$tmpdir/boot/grub/loopback.cfg"
+	fi
+	log "👍 Added data and configured kernel command line."
 fi
 
 if [ ${md5_checksum} -eq 1 ]; then
