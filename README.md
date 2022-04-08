@@ -2,6 +2,8 @@
 A script to generate a fully-automated ISO image for installing Ubuntu onto a machine without human interaction. This uses the new autoinstall method
 for Ubuntu 20.04 and newer.
 
+Additional scripts will generate install media from existing media, with parameters for username, password, hostname and an optional list of packages to be installed. The package list can be generated from a currently installed system with another script.
+
 ## [Looking for the desktop version?](https://github.com/covertsh/ubuntu-preseed-iso-generator)
 
 ### Behavior
@@ -56,6 +58,21 @@ Available options:
 -d, --destination       Destination ISO file. By default <script directory>/ubuntu-autoinstall-<current date>.iso will be
                         created, overwriting any existing file.
 ```
+Usage of wrapper script: 
+generate_wrapper.sh [-h] [-u intial-user-name] [-n hostname] [-p initial-password] [-s source-iso-file] [-d destination-iso-file] [-i packages-to-install-file]
+
+This script will create fully-automated Ubuntu 20.04 Focal Fossa installation from an iso, with an optional list of packages to install.
+
+Available options:
+
+-h, --help              Print this help and exit
+-u, --username          Initial user to create.
+-n, -- hostname         Hostname of the machine.
+-s, --source            Source ISO file.
+-d, --destination       Destination ISO file.
+-i, --install		( Optional) Preformatted list of packages to install.
+
+get_packages.sh generates a list of packages appropriately formatted from a current Ubuntu system.
 
 ### Example
 ```
