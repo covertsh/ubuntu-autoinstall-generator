@@ -231,6 +231,7 @@ log "🧩 Adding autoinstall parameter to kernel command line..."
 sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/isolinux/txt.cfg"
 sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/boot/grub/grub.cfg"
 sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/boot/grub/loopback.cfg"
+sed -i -r 's/timeout\s+[0-9]+/timeout 1/g' "$tmpdir/isolinux/isolinux.cfg"
 log "👍 Added parameter to UEFI and BIOS kernel command lines."
 
 if [ ${all_in_one} -eq 1 ]; then
