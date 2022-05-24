@@ -56,6 +56,8 @@ Available options:
                         That file will be used by default if it already exists.
 -d, --destination       Destination ISO file. By default ${script_dir}/ubuntu-autoinstall-$today.iso will be
                         created, overwriting any existing file.
+-x, --extra-file        Additional file or files using standard folder / file wildcards to include in the image.
+                        Used for customisations of the image for specific deployment purposes
 EOF
         exit
 }
@@ -75,6 +77,7 @@ function parse_params() {
         use_hwe_kernel=0
         md5_checksum=1
         use_release_iso=0
+        extra_file=''
 
         while :; do
                 case "${1-}" in
@@ -99,6 +102,10 @@ function parse_params() {
                         ;;
                 -m | --meta-data)
                         meta_data_file="${2-}"
+                        shift
+                        ;;
+                -x | --extra-file)
+                        extra_file="${2-}"
                         shift
                         ;;
                 -?*) die "Unknown option: $1" ;;
@@ -241,6 +248,10 @@ if [ ${all_in_one} -eq 1 ]; then
                 cp "$meta_data_file" "$tmpdir/nocloud/meta-data"
         else
                 touch "$tmpdir/nocloud/meta-data"
+        fi
+        if [[ -n "${extra_file}" ]]; then
+                log "🧩 Adding specified extra files"
+                cp -r "$extra_file" "$tmpdir/nocloud/"
         fi
         sed -i -e 's,---, ds=nocloud;s=/cdrom/nocloud/  ---,g' "$tmpdir/isolinux/txt.cfg"
         sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/nocloud/  ---,g' "$tmpdir/boot/grub/grub.cfg"

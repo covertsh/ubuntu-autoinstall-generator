@@ -27,7 +27,7 @@ Tested on a host running Ubuntu 20.04.1.
 
 ### Usage
 ```
-Usage: ubuntu-autoinstall-generator.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
+Usage: ubuntu-autoinstall-generator.sh [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file] [-x extra-file-or-folder-path]
 
 💁 This script will create fully-automated Ubuntu 20.04 Focal Fossa installation media.
 
@@ -55,6 +55,8 @@ Available options:
                         That file will be used by default if it already exists.
 -d, --destination       Destination ISO file. By default <script directory>/ubuntu-autoinstall-<current date>.iso will be
                         created, overwriting any existing file.
+-x, --extra-file        Additional file or files using standard folder / file wildcards to include in the image.
+                        Used for customisations of the image for specific deployment purposes
 ```
 
 ### Example

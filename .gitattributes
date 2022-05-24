@@ -1,0 +1,5 @@
+# Auto detect text files and perform LF normalization
+* text=Auto
+*.sh text eol=LF
+*.gitignore text eol=LF
+*.gitattributes text eol=LF
