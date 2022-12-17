@@ -151,6 +151,7 @@ fi
 
 log "🔎 Checking for required utilities..."
 [[ ! -x "$(command -v xorriso)" ]] && die "💥 xorriso is not installed. On Ubuntu, install  the 'xorriso' package."
+[[ ! -x "$(command -v 7z)" ]] && die "💥 7z is not installed. On Ubuntu, install  the '7zip' package."
 [[ ! -x "$(command -v sed)" ]] && die "💥 sed is not installed. On Ubuntu, install the 'sed' package."
 [[ ! -x "$(command -v curl)" ]] && die "💥 curl is not installed. On Ubuntu, install the 'curl' package."
 [[ ! -x "$(command -v gpg)" ]] && die "💥 gpg is not installed. On Ubuntu, install the 'gpg' package."
