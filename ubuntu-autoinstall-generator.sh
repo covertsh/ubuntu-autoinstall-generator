@@ -29,7 +29,7 @@ usage() {
         cat <<EOF
 Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
 
-💁 This script will create fully-automated Ubuntu 20.04 Focal Fossa installation media.
+💁 This script will create fully-automated Ubuntu 22.04 Jammy Jellyfish installation media.
 
 Available options:
 
@@ -40,7 +40,7 @@ Available options:
                         autoinstall user-data and meta-data files.
                         For more information see: https://ubuntu.com/server/docs/install/autoinstall-quickstart
 -e, --use-hwe-kernel    Force the generated ISO to boot using the hardware enablement (HWE) kernel. Not supported
-                        by early Ubuntu 20.04 release ISOs.
+                        by early Ubuntu 22.04 release ISOs.
 -u, --user-data         Path to user-data file. Required if using -a
 -m, --meta-data         Path to meta-data file. Will be an empty file if not specified and using -a
 -k, --no-verify         Disable GPG verification of the source ISO file. By default SHA256SUMS-$today and
@@ -51,7 +51,7 @@ Available options:
 -c, --no-md5            Disable MD5 checksum on boot
 -r, --use-release-iso   Use the current release ISO instead of the daily ISO. The file will be used if it already
                         exists.
--s, --source            Source ISO file. By default the latest daily ISO for Ubuntu 20.04 will be downloaded
+-s, --source            Source ISO file. By default the latest daily ISO for Ubuntu 22.04 will be downloaded
                         and saved as ${script_dir}/ubuntu-original-$today.iso
                         That file will be used by default if it already exists.
 -d, --destination       Destination ISO file. By default ${script_dir}/ubuntu-autoinstall-$today.iso will be
@@ -64,8 +64,8 @@ function parse_params() {
         # default values of variables set from params
         user_data_file=''
         meta_data_file=''
-        download_url="https://cdimage.ubuntu.com/ubuntu-server/focal/daily-live/current"
-        download_iso="focal-live-server-amd64.iso"
+        download_url="https://cdimage.ubuntu.com/ubuntu-server/jammy/daily-live/current"
+        download_iso="jammy-live-server-amd64.iso"
         original_iso="ubuntu-original-$today.iso"
         source_iso="${script_dir}/${original_iso}"
         destination_iso="${script_dir}/ubuntu-autoinstall-$today.iso"
@@ -121,7 +121,7 @@ function parse_params() {
         fi
 
         if [ "${use_release_iso}" -eq 1 ]; then
-                download_url="https://releases.ubuntu.com/focal"
+                download_url="https://releases.ubuntu.com/jammy"
                 log "🔎 Checking for current release..."
                 download_iso=$(curl -sSL "${download_url}" | grep -oP 'ubuntu-20\.04\.\d*-live-server-amd64\.iso' | head -n 1)
                 original_iso="${download_iso}"
@@ -158,7 +158,7 @@ log "🔎 Checking for required utilities..."
 log "👍 All required utilities are installed."
 
 if [ ! -f "${source_iso}" ]; then
-        log "🌎 Downloading ISO image for Ubuntu 20.04 Focal Fossa..."
+        log "🌎 Downloading ISO image for Ubuntu 22.04 Jammy Jellyfish..."
         curl -NsSL "${download_url}/${download_iso}" -o "${source_iso}"
         log "👍 Downloaded and saved to ${source_iso}"
 else
@@ -208,62 +208,63 @@ else
         log "🤞 Skipping verification of source ISO."
 fi
 log "🔧 Extracting ISO image..."
-xorriso -osirrox on -indev "${source_iso}" -extract / "$tmpdir" &>/dev/null
-chmod -R u+w "$tmpdir"
-rm -rf "$tmpdir/"'[BOOT]'
-log "👍 Extracted to $tmpdir"
+7z -y x "${source_iso}" -o"$tmpdir/iso" &>/dev/null
+chmod -R u+w "$tmpdir/iso"
+mv "$tmpdir/iso/"'[BOOT]' "$tmpdir/BOOT"
+log "👍 Extracted to $tmpdir/iso"
 
 if [ ${use_hwe_kernel} -eq 1 ]; then
-        if grep -q "hwe-vmlinuz" "$tmpdir/boot/grub/grub.cfg"; then
+        if grep -q "hwe-vmlinuz" "$tmpdir/iso/boot/grub/grub.cfg"; then
                 log "☑️ Destination ISO will use HWE kernel."
-                sed -i -e 's|/casper/vmlinuz|/casper/hwe-vmlinuz|g' "$tmpdir/isolinux/txt.cfg"
-                sed -i -e 's|/casper/initrd|/casper/hwe-initrd|g' "$tmpdir/isolinux/txt.cfg"
-                sed -i -e 's|/casper/vmlinuz|/casper/hwe-vmlinuz|g' "$tmpdir/boot/grub/grub.cfg"
-                sed -i -e 's|/casper/initrd|/casper/hwe-initrd|g' "$tmpdir/boot/grub/grub.cfg"
-                sed -i -e 's|/casper/vmlinuz|/casper/hwe-vmlinuz|g' "$tmpdir/boot/grub/loopback.cfg"
-                sed -i -e 's|/casper/initrd|/casper/hwe-initrd|g' "$tmpdir/boot/grub/loopback.cfg"
+                sed -i -e 's|/casper/vmlinuz|/casper/hwe-vmlinuz|g' "$tmpdir/iso/boot/grub/grub.cfg"
+                sed -i -e 's|/casper/initrd|/casper/hwe-initrd|g' "$tmpdir/iso/boot/grub/grub.cfg"
+                sed -i -e 's|/casper/vmlinuz|/casper/hwe-vmlinuz|g' "$tmpdir/iso/boot/grub/loopback.cfg"
+                sed -i -e 's|/casper/initrd|/casper/hwe-initrd|g' "$tmpdir/iso/boot/grub/loopback.cfg"
         else
                 log "⚠️ This source ISO does not support the HWE kernel. Proceeding with the regular kernel."
         fi
 fi
 
 log "🧩 Adding autoinstall parameter to kernel command line..."
-sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/isolinux/txt.cfg"
-sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/boot/grub/grub.cfg"
-sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/boot/grub/loopback.cfg"
-log "👍 Added parameter to UEFI and BIOS kernel command lines."
+sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/iso/boot/grub/grub.cfg"
+sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/iso/boot/grub/loopback.cfg"
+log "👍 Added parameter to UEFI kernel command line."
+
+log "🧩 Setting grub timeout to 1 second..."
+sed -i -e 's/timeout=30/timeout=1/g' "$tmpdir/iso/boot/grub/grub.cfg"
+sed -i -e 's/timeout=30/timeout=1/g' "$tmpdir/iso/boot/grub/loopback.cfg"
+log "👍 Timeout set for UEFI kernel command line."
 
 if [ ${all_in_one} -eq 1 ]; then
         log "🧩 Adding user-data and meta-data files..."
-        mkdir "$tmpdir/nocloud"
-        cp "$user_data_file" "$tmpdir/nocloud/user-data"
+        mkdir "$tmpdir/iso/server"
+        cp "$user_data_file" "$tmpdir/iso/server/user-data"
         if [ -n "${meta_data_file}" ]; then
-                cp "$meta_data_file" "$tmpdir/nocloud/meta-data"
+                cp "$meta_data_file" "$tmpdir/iso/server/meta-data"
         else
-                touch "$tmpdir/nocloud/meta-data"
+                touch "$tmpdir/iso/server/meta-data"
         fi
-        sed -i -e 's,---, ds=nocloud;s=/cdrom/nocloud/  ---,g' "$tmpdir/isolinux/txt.cfg"
-        sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/nocloud/  ---,g' "$tmpdir/boot/grub/grub.cfg"
-        sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/nocloud/  ---,g' "$tmpdir/boot/grub/loopback.cfg"
+        sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/server/  ---,g' "$tmpdir/iso/boot/grub/grub.cfg"
+        sed -i -e 's,---, ds=nocloud\\\;s=/cdrom/server/  ---,g' "$tmpdir/iso/boot/grub/loopback.cfg"
         log "👍 Added data and configured kernel command line."
 fi
 
 if [ ${md5_checksum} -eq 1 ]; then
-        log "👷 Updating $tmpdir/md5sum.txt with hashes of modified files..."
-        md5=$(md5sum "$tmpdir/boot/grub/grub.cfg" | cut -f1 -d ' ')
-        sed -i -e 's,^.*[[:space:]] ./boot/grub/grub.cfg,'"$md5"'  ./boot/grub/grub.cfg,' "$tmpdir/md5sum.txt"
-        md5=$(md5sum "$tmpdir/boot/grub/loopback.cfg" | cut -f1 -d ' ')
-        sed -i -e 's,^.*[[:space:]] ./boot/grub/loopback.cfg,'"$md5"'  ./boot/grub/loopback.cfg,' "$tmpdir/md5sum.txt"
+        log "👷 Updating $tmpdir/iso/md5sum.txt with hashes of modified files..."
+        md5=$(md5sum "$tmpdir/iso/boot/grub/grub.cfg" | cut -f1 -d ' ')
+        sed -i -e 's,^.*[[:space:]] ./boot/grub/grub.cfg,'"$md5"'  ./boot/grub/grub.cfg,' "$tmpdir/iso/md5sum.txt"
+        md5=$(md5sum "$tmpdir/iso/boot/grub/loopback.cfg" | cut -f1 -d ' ')
+        sed -i -e 's,^.*[[:space:]] ./boot/grub/loopback.cfg,'"$md5"'  ./boot/grub/loopback.cfg,' "$tmpdir/iso/md5sum.txt"
         log "👍 Updated hashes."
 else
         log "🗑️ Clearing MD5 hashes..."
-        echo > "$tmpdir/md5sum.txt"
+        echo > "$tmpdir/iso/md5sum.txt"
         log "👍 Cleared hashes."
 fi
 
 log "📦 Repackaging extracted files into an ISO image..."
-cd "$tmpdir"
-xorriso -as mkisofs -r -V "ubuntu-autoinstall-$today" -J -b isolinux/isolinux.bin -c isolinux/boot.cat -no-emul-boot -boot-load-size 4 -isohybrid-mbr /usr/lib/ISOLINUX/isohdpfx.bin -boot-info-table -input-charset utf-8 -eltorito-alt-boot -e boot/grub/efi.img -no-emul-boot -isohybrid-gpt-basdat -o "${destination_iso}" . &>/dev/null
+cd "$tmpdir/iso"
+xorriso -as mkisofs -r -V "ubuntu-autoinstall-$today" -o "${destination_iso}" --grub2-mbr ../BOOT/1-Boot-NoEmul.img -partition_offset 16 --mbr-force-bootable -append_partition 2 28732ac11ff8d211ba4b00a0c93ec93b ../BOOT/2-Boot-NoEmul.img -appended_part_as_gpt -iso_mbr_part_type a2a0d0ebe5b9334487c068b6b72699c7 -c '/boot.catalog' -b '/boot/grub/i386-pc/eltorito.img' -no-emul-boot -boot-load-size 4 -boot-info-table --grub2-boot-info -eltorito-alt-boot -e '--interval:appended_partition_2:::' -no-emul-boot .
 cd "$OLDPWD"
 log "👍 Repackaged into ${destination_iso}"
 
