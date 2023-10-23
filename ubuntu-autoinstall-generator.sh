@@ -27,7 +27,7 @@ function die() {
 
 usage() {
         cat <<EOF
-Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
+Usage: $(basename "${BASH_SOURCE[0]}") [-h] [-v] [-w work-directory] [-a] [-e] [-u user-data-file] [-m meta-data-file] [-k] [-c] [-r] [-s source-iso-file] [-d destination-iso-file]
 
 💁 This script will create fully-automated Ubuntu 20.04 Focal Fossa installation media.
 
@@ -35,6 +35,7 @@ Available options:
 
 -h, --help              Print this help and exit
 -v, --verbose           Print script debug info
+-w, --work-directory    Work in other directory than script_dir.
 -a, --all-in-one        Bake user-data and meta-data into the generated ISO. By default you will
                         need to boot systems with a CIDATA volume attached containing your
                         autoinstall user-data and meta-data files.
@@ -85,6 +86,10 @@ function parse_params() {
                 -c | --no-md5) md5_checksum=0 ;;
                 -k | --no-verify) gpg_verify=0 ;;
                 -r | --use-release-iso) use_release_iso=1 ;;
+                -w | --work-directory)
+                        script_dir="${2-}"
+                        shift
+                        ;;
                 -u | --user-data)
                         user_data_file="${2-}"
                         shift
