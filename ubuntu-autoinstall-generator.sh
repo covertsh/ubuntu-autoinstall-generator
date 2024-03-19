@@ -227,8 +227,8 @@ if [ ${use_hwe_kernel} -eq 1 ]; then
 fi
 
 log "🧩 Adding autoinstall parameter to kernel command line..."
-sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/iso/boot/grub/grub.cfg"
-sed -i -e 's/---/ autoinstall  ---/g' "$tmpdir/iso/boot/grub/loopback.cfg"
+sed -i -e 's/---/ nomodeset autoinstall  ---/g' "$tmpdir/iso/boot/grub/grub.cfg"
+sed -i -e 's/---/ nomodeset autoinstall  ---/g' "$tmpdir/iso/boot/grub/loopback.cfg"
 log "👍 Added parameter to UEFI kernel command line."
 
 log "🧩 Setting grub timeout to 1 second..."
